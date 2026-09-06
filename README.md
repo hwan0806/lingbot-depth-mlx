@@ -37,7 +37,7 @@ flowchart LR
 | Runtime | MLX attention and array operations | **CPU+GPU**, Metal preprocessing |
 | Baseline | Original checkpoint parity | **safe107 · Eco1200 · 560 × 420** |
 
-[Swift runtime](ios/Packages/LingBotDepthRuntime) · [Model manifest](models/model-manifest.json) · **Model download: TBD**
+[MLX runtime](lingbot_depth_mlx/model.py) · [Swift runtime](ios/Packages/LingBotDepthRuntime) · [Core ML manifest](models/model-manifest.json) · **Model downloads: TBD**
 
 ## Validation
 
@@ -82,6 +82,8 @@ The **18.48 m GT outlier also occurs in PyTorch**: at the same pixel, GT is 34.6
 
 Fresh Mac Core ML inference on all three fixtures **exactly reproduced the saved depth/mask outputs**. The [reproduction report](evidence/standalone-reproduction.json) also provides pixel p99, mask coverage, and viewer-excluded depth fractions.
 
+The restored MLX runtime also ran all three fixtures in **FP32 and BF16** without PyTorch. FP32 depth and binary masks exactly matched the saved MLX reference. BF16 results are reported separately, not claimed as exact FP32 parity. [MLX reproduction](evidence/mlx-reproduction.json)
+
 ### On-device status
 
 | Historical M2 iPad Pro beta | Result |
@@ -106,6 +108,47 @@ The viewer's range filter can hide out-of-range predictions; validation reports 
 [App source](ios/Apps/LingBotDepthBench/Sources/BetaCaptureView.swift) · [Xcode project](ios/Apps/LingBotDepthBench/LingBotDepthBench.xcodeproj)
 
 ## Quick start
+
+### Mac · MLX
+
+Apple Silicon Mac and preconverted **FP32 or BF16 MLX weights**. Model download: **TBD**.
+
+Place `weights.safetensors` and `config.json` in `models/mlx-fp32/`. For BF16, also supply its `precision.json`. The loader checks these files against the [pinned hashes](lingbot_depth_mlx/weights.py).
+
+```bash
+uv sync --extra mlx --extra test
+
+# Run all three public fixtures and compare with GT and saved outputs.
+uv run --extra mlx python run_mlx.py \
+  --model models/mlx-fp32 --output outputs/mlx-public
+
+# Or infer an aligned RGB + depth image pair.
+uv run --extra mlx python run_mlx.py \
+  --model models/mlx-fp32 --rgb path/to/rgb.png \
+  --depth path/to/depth.png --depth-unit mm --output outputs/mlx-custom
+```
+
+Outputs: NPZ files with meter-valued `depth`, `mask`, and `mask_probability`, plus `report.json`. Uses 1200 tokens. BF16 uses a BF16 encoder and FP32 decoder; pass its directory with `--model`. A PyTorch checkpoint is not an MLX checkpoint.
+
+### Browser · Interactive 3D
+
+[viser](https://viser.studio/main/api/core/server/) shows RGB-colored point clouds with orbit/zoom, sample selection, and **MLX / input depth / GT / saved Core ML** switching.
+
+```bash
+# Preview the public saved outputs immediately; no model download needed.
+uv run --extra viewer python view_depth.py
+
+# Run MLX on the public fixtures, then view the fresh predictions.
+uv run --extra mlx --extra viewer python run_mlx.py \
+  --model models/mlx-fp32 --output outputs/mlx-view --view
+
+# Reopen existing predictions without running inference again.
+uv run --extra viewer python view_depth.py --results outputs/mlx-view
+```
+
+Open the printed localhost URL (default port 8080; the next free port is used if busy). The server binds to **127.0.0.1 only**; Ctrl+C stops it. Depth range, RGB/depth colors, point density, model masking, and excluded-point fractions are available in the panel. Saved outputs are labeled separately from fresh inference.
+
+For your own RGB-D pair, add `--view` to the custom MLX command above. Supply `--intrinsics FX FY CX CY` in **input-image pixels** for calibrated projection. Otherwise the viewer uses an adjustable, approximate 60° horizontal FOV; depth remains in meters, but lateral geometry is illustrative. Public fixtures have no intrinsics; their GT is nearest-resized for display, while reported GT metrics use native-resolution evaluation.
 
 ### Mac · Core ML validation
 
@@ -156,12 +199,12 @@ uv run python validate.py install --model models/model.mlpackage \
 <summary>Tests</summary>
 
 ```bash
-uv run pytest
+uv run --extra mlx --extra viewer --extra test pytest
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   xcrun swift test --package-path ios/Packages/LingBotDepthRuntime
 ```
 
-**29 Python + 2 Swift tests passed:** metrics, hashes, installation commands, camera geometry, and app projection/preview logic.
+Tests cover metrics, MLX preprocessing/checkpoints, hashes, installation commands, camera geometry, point-cloud projection, and the local viewer. MLX and viser checks are skipped when their optional dependencies are absent.
 
 </details>
 
