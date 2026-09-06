@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "scope": "Three public iBims cases; no private device capture",
+  "files": {
+    "ATTRIBUTION.md": "c00e08dc8b2557f4b89fb7ede1fd8337c399dbe85e08f3c25b06694d4d5eb6ee",
+    "corridor_01-lowres-8x.npz": "e6902f2f0ac4582966611662466fd89a3fb5f94ad1383d625ab27c765551b7bd",
+    "corridor_01-sparse-500.npz": "47120a24dbd8bde604dba4b5e0bb2eabd4dc4cd372f7f5a87fda6ea3af5685cc",
+    "lab_11-sparse-500.npz": "ababbaef79346b90eae85a1ee20db8899d9ab613202ed8ceb41a68b31a16789c",
+    "samples.json": "7000ead00e1cc1522048801eafdfaf07fb2b101d29474e2c092fa35884214b86"
+  }
+}

@@ -1,0 +1,29 @@
+name: LingBotDepthBench
+options:
+  deploymentTarget:
+    iOS: "18.0"
+packages:
+  LingBotDepthRuntime:
+    path: ../../Packages/LingBotDepthRuntime
+targets:
+  LingBotDepthBench:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    dependencies:
+      - package: LingBotDepthRuntime
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.siliconpedia.LingBotDepthBench
+        PRODUCT_NAME: LingBotDepthBench
+        TARGETED_DEVICE_FAMILY: 2
+        SWIFT_VERSION: 6.0
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: LingBot Depth Bench
+        INFOPLIST_KEY_NSCameraUsageDescription: RGB-D depth inference validation
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        SUPPORTS_MACCATALYST: NO

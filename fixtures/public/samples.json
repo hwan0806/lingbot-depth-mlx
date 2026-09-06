@@ -1,0 +1,17 @@
+[
+  {
+    "file": "lab_11-sparse-500.npz",
+    "sample_id": "lab_11-sparse-500",
+    "sha256": "ababbaef79346b90eae85a1ee20db8899d9ab613202ed8ceb41a68b31a16789c"
+  },
+  {
+    "file": "corridor_01-sparse-500.npz",
+    "sample_id": "corridor_01-sparse-500",
+    "sha256": "47120a24dbd8bde604dba4b5e0bb2eabd4dc4cd372f7f5a87fda6ea3af5685cc"
+  },
+  {
+    "file": "corridor_01-lowres-8x.npz",
+    "sample_id": "corridor_01-lowres-8x",
+    "sha256": "e6902f2f0ac4582966611662466fd89a3fb5f94ad1383d625ab27c765551b7bd"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "profile": "eco",
+  "files": {
+    "model.mlpackage/executorch_debug_handle_mapping.json": "284e91c27a33cbefaa29818b32ba8593007ddbc8349070b6fb43e8bfca8be1c0",
+    "model.mlpackage/Manifest.json": "033178752b5f4fed3bbd5bc70ccd562254e1f90084eacd028f28c68acf542b74",
+    "model.mlpackage/Data/com.apple.CoreML/model.mlmodel": "52b5c2c6a6f8008696edd021919adc6d2620b675e9d91f498ee298076b21a8ee",
+    "model.mlpackage/Data/com.apple.CoreML/weights/weight.bin": "7f8b49630125c865978ea47543ecac2626145ff164154f8bd6ae469695cfb0b6"
+  }
+}
