@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parent
+COREML_MODEL_ID = 'lingbot-depth-coreml-eco1200-mixed-fp16-fp32'
 MANIFEST_SHA = 'ee3ceba8609ff768e55217979b6226c9034a627133c769f6ede7d058361fdccf'
 MODEL_MANIFEST = ROOT / 'models/model-manifest.json'
 FIXTURES = ROOT / 'fixtures'
@@ -64,7 +65,7 @@ def verify_fixtures(root: Path = FIXTURES) -> list[dict]:
 
 def verify_model(package: Path, manifest_path: Path = MODEL_MANIFEST) -> None:
     if manifest_path.is_symlink() or sha256(manifest_path) != MANIFEST_SHA:
-        raise ValueError('pinned safe107 manifest mismatch')
+        raise ValueError('pinned Core ML manifest mismatch')
     manifest = json.loads(manifest_path.read_text())
     if manifest['schemaVersion'] != 1 or manifest['profile'] != 'eco':
         raise ValueError('model manifest contract mismatch')
@@ -141,7 +142,7 @@ def evaluate(package: Path, output: Path, saved: bool = False) -> dict:
             rows.append({'sample_id': sample['sample_id'], 'fixture_sha256': sample['sha256'],
                          **compare_sample(data, depth, probability)})
     result = {'mode': 'saved-output-replay' if saved else 'fresh-mac-coreml-cpu-and-gpu',
-              'model_manifest_sha256': MANIFEST_SHA, 'samples': rows,
+              'model_id': COREML_MODEL_ID, 'model_manifest_sha256': MANIFEST_SHA, 'samples': rows,
               'environment': {'python': platform.python_version(), 'macos': platform.mac_ver()[0],
                               'architecture': platform.machine(),
                               'packages': {p: version(p) for p in ('numpy', 'opencv-python', 'coremltools')}},
@@ -167,7 +168,7 @@ def install_commands(payload: Path, device: str, team: str, bundle_id: str, buil
          'PRODUCT_BUNDLE_IDENTIFIER=' + bundle_id, 'build'],
         ['xcrun', 'devicectl', 'device', 'install', 'app', '--device', device, str(app)],
         ['xcrun', 'devicectl', 'device', 'copy', 'to', '--device', device,
-         '--source', str(payload), '--destination', 'Documents/safe107-model',
+         '--source', str(payload), '--destination', 'Documents/' + COREML_MODEL_ID,
          '--domain-type', 'appDataContainer', '--domain-identifier', bundle_id],
         ['xcrun', 'devicectl', 'device', 'process', 'launch', '--device', device,
          '--terminate-existing', bundle_id],
@@ -178,12 +179,12 @@ def install(package: Path, device: str, team: str, bundle_id: str, dry_run: bool
     verify_model(package)
     build = ROOT / 'build/ipad'
     if dry_run:
-        for command in install_commands(Path('<temporary-safe107-model>'), device, team, bundle_id, build):
+        for command in install_commands(Path('<temporary-model-payload>') / COREML_MODEL_ID, device, team, bundle_id, build):
             print(json.dumps(command))
         return
     build.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='model-upload-', dir=build) as stage:
-        payload = Path(stage) / 'safe107-model'
+        payload = Path(stage) / COREML_MODEL_ID
         payload.mkdir()
         shutil.copytree(package, payload / 'model.mlpackage')
         shutil.copyfile(MODEL_MANIFEST, payload / 'model-manifest.json')
@@ -197,7 +198,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest='command', required=True)
     for name in ('verify', 'run', 'install'):
         p = sub.add_parser(name)
-        p.add_argument('--model', type=Path, default=None if name == 'verify' else ROOT / 'models/model.mlpackage')
+        p.add_argument('--model', type=Path, default=None if name == 'verify' else ROOT / 'models' / COREML_MODEL_ID / 'model.mlpackage')
         if name == 'run':
             p.add_argument('--saved', action='store_true', help='Replay saved Core ML outputs; no weights required')
             p.add_argument('--output', type=Path, required=True)

@@ -3,6 +3,7 @@ import Foundation
 
 /// Validate a supplied Core ML package; no conversion or fallback model.
 public enum ValidatedModelPackage {
+    public static let modelID = "lingbot-depth-coreml-eco1200-mixed-fp16-fp32"
     public static let manifestSHA256 = "ee3ceba8609ff768e55217979b6226c9034a627133c769f6ede7d058361fdccf"
 
     private struct Manifest: Decodable {
@@ -14,7 +15,7 @@ public enum ValidatedModelPackage {
     public enum ValidationError: LocalizedError {
         case invalidPackage
         public var errorDescription: String? {
-            "Missing or invalid safe107 model. Install the verified model payload into Documents/safe107-model."
+            "Missing or invalid Core ML model. Install the verified model payload into Documents/\(ValidatedModelPackage.modelID)."
         }
     }
 

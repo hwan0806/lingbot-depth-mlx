@@ -9,6 +9,10 @@ WEIGHT_SHA = {
     "fp32": "cd87dc1f9bb379edffdef98d38595b2ec6640f90524a8c3e820fd09dec805123",
     "bf16": "2b67ce4896586a4c59e4bc578754439ad22b457998fc493c247bb594d2e02134",
 }
+MODEL_IDS = {
+    'fp32': 'lingbot-depth-mlx-fp32',
+    'bf16': 'lingbot-depth-mlx-mixed-bf16-fp32',
+}
 
 
 def verify_checkpoint(directory: Path) -> str:

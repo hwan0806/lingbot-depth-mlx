@@ -90,7 +90,7 @@ def test_install_builds_then_copies_verified_model_without_changing_bundle_id(tm
     assert commands[1][2:5] == ['device', 'install', 'app']
     assert commands[2][2:5] == ['device', 'copy', 'to']
     assert commands[3][2:5] == ['device', 'process', 'launch']
-    assert 'Documents/safe107-model' in commands[2]
+    assert 'Documents/' + validate.COREML_MODEL_ID in commands[2]
     assert validate.BUNDLE_ID in commands[2] and validate.BUNDLE_ID in commands[3]
     with pytest.raises(ValueError):
         validate.install_commands(tmp_path, 'device;bad', 'ABCDEFGHIJ', validate.BUNDLE_ID, tmp_path)
@@ -103,5 +103,7 @@ def test_app_is_independent_and_uses_pinned_package_verifier():
     assert '.f32' not in project and '.mlpackage' not in project
     assert 'CameraBenchmark' not in project and 'Benchmark.' not in view
     assert 'ValidatedModelPackage.validate' in view
+    assert 'appending(path: ValidatedModelPackage.modelID)' in view
+    assert validate.COREML_MODEL_ID in Path('ios/Packages/LingBotDepthRuntime/Sources/LingBotDepthRuntime/ValidatedModelPackage.swift').read_text()
     assert validate.MANIFEST_SHA in Path('ios/Packages/LingBotDepthRuntime/Sources/LingBotDepthRuntime/ValidatedModelPackage.swift').read_text()
     assert validate.sha256(validate.MODEL_MANIFEST) == validate.MANIFEST_SHA

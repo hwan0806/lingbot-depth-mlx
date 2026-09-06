@@ -19,6 +19,7 @@ def run(model_path: Path, output: Path, rgb=None, depth=None, depth_unit="mm") -
     samples = verify_fixtures() if rgb is None else None
     import mlx.core as mx
     from lingbot_depth_mlx.model import LingBotDepth
+    from lingbot_depth_mlx.weights import MODEL_IDS
     from lingbot_depth_mlx.preprocessing import load_rgb, load_depth
 
     started = time.perf_counter()
@@ -52,6 +53,7 @@ def run(model_path: Path, output: Path, rgb=None, depth=None, depth_unit="mm") -
                              "inference_seconds": seconds,
                              **compare_sample(data, arrays["depth"], arrays["mask_probability"])})
     report = {
+        'model_id': MODEL_IDS['bf16' if (model_path / 'precision.json').exists() else 'fp32'],
         "mode": "fresh-mac-mlx", "num_tokens": 1200,
         "precision": "bf16-encoder-fp32-decoder" if (model_path / "precision.json").exists() else "fp32",
         "weights_sha256": sha256(model_path / "weights.safetensors"),
@@ -68,7 +70,7 @@ def run(model_path: Path, output: Path, rgb=None, depth=None, depth_unit="mm") -
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", type=Path, required=True)
+    parser.add_argument("--model", type=Path, default=Path(__file__).resolve().parent / 'models/lingbot-depth-mlx-fp32')
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--rgb", type=Path)
     parser.add_argument("--depth", type=Path)

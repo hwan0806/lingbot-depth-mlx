@@ -3,7 +3,7 @@ import Testing
 @testable import LingBotDepthRuntime
 
 @Test func modelPackageValidatesEveryFileAndRefusesTampering() throws {
-    let root = FileManager.default.temporaryDirectory.appending(path: "safe107-check-\(UUID().uuidString)")
+    let root = FileManager.default.temporaryDirectory.appending(path: "coreml-package-check-\(UUID().uuidString)")
     let package = root.appending(path: "model.mlpackage")
     try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }

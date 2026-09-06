@@ -35,7 +35,7 @@ flowchart LR
 | Porting | OIHW/IOHW → OHWI weights; matched preprocessing and interpolation | Static tokens + attention mask; invalid-depth sanitization |
 | Precision | FP32 reference; BF16 and quantization experiments | **56 convolutions in FP16; rest FP32** |
 | Runtime | MLX attention and array operations | **CPU+GPU**, Metal preprocessing |
-| Baseline | Original checkpoint parity | **safe107 · Eco1200 · 560 × 420** |
+| Baseline | Original checkpoint parity | **Eco1200 · mixed FP16/FP32 · 560 × 420** |
 
 [MLX runtime](lingbot_depth_mlx/model.py) · [Swift runtime](ios/Packages/LingBotDepthRuntime) · [Core ML manifest](models/model-manifest.json) · **Model downloads: TBD**
 
@@ -43,7 +43,7 @@ flowchart LR
 
 Results as of **September 6, 2026**. Numerical agreement, GT accuracy, and device functionality are separate checks.
 
-### safe107 · Core ML vs. MLX FP32
+### Core ML Eco1200 · mixed FP16/FP32 vs. MLX FP32
 
 **Same-input output agreement—not ground-truth accuracy.**
 
@@ -58,13 +58,13 @@ Results as of **September 6, 2026**. Numerical agreement, GT accuracy, and devic
 
 Mac MAE/RMSE/AbsRel are sample means; maximum error and minimum IoU cover all 60 cases. iPad agreement uses the last saved output of one fixed frame, not a 60-case device evaluation.
 
-[60-case metrics](evidence/full60-metrics.json) · [Device & GT summary](evidence/safe107-evidence.json)
+[60-case metrics](evidence/full60-metrics.json) · [Device & GT summary](evidence/lingbot-depth-coreml-eco1200-mixed-fp16-fp32-summary.json)
 
 ### Depth quality
 
 **iBims-1:** 20 indoor images × 3 synthetic depth corruptions—central holes, 500 sparse samples, and 1/8-resolution depth. Predictions are evaluated against laser-scanner GT, not real iPad LiDAR GT.
 
-| safe107 · 60-case mean | Result |
+| Core ML Eco1200 · mixed FP16/FP32 · 60-case mean | Result |
 |---|---:|
 | MAE | **3.997 cm** |
 | RMSE | **0.118032 m** |
@@ -92,7 +92,7 @@ The restored MLX runtime also ran all three fixtures in **FP32 and BF16** withou
 | Model inference | **1.12–1.30 s** in two UI-reported captures |
 | Total capture processing | **1.32–1.51 s** in those captures |
 
-These are individual captures, not a controlled speed benchmark. **safe107 remains the default; ANE acceleration is unproven.** The current app revision passes an unsigned iOS Release build; its physical-device retest is pending.
+These are individual captures, not a controlled speed benchmark. **Core ML Eco1200 mixed FP16/FP32 remains the default; ANE acceleration is unproven.** On September 7, the renamed-package app passed a signed build, physical-iPad installation, model transfer, and launch. Capture-to-3D confirmation for this revision is still pending.
 
 ## iPad beta
 
@@ -109,22 +109,32 @@ The viewer's range filter can hide out-of-range predictions; validation reports 
 
 ## Quick start
 
+### Model packages
+
+| Package directory under `models/` | Precision | Contents |
+|---|---|---|
+| `lingbot-depth-mlx-fp32/` | FP32 | `weights.safetensors`, `config.json` |
+| `lingbot-depth-mlx-mixed-bf16-fp32/` | Encoder BF16 + decoder FP32 | Same files + `precision.json` |
+| `lingbot-depth-coreml-eco1200-mixed-fp16-fp32/` | 56 Conv operations FP16 + remaining graph FP32 | `model.mlpackage`, `model-manifest.json` |
+
+Model downloads remain **TBD**. `safe107` is the historical alias for the Core ML package above; this is a naming change, not a new model. Weights and verification hashes are unchanged.
+
 ### Mac · MLX
 
 Apple Silicon Mac and preconverted **FP32 or BF16 MLX weights**. Model download: **TBD**.
 
-Place `weights.safetensors` and `config.json` in `models/mlx-fp32/`. For BF16, also supply its `precision.json`. The loader checks these files against the [pinned hashes](lingbot_depth_mlx/weights.py).
+Place `weights.safetensors` and `config.json` in `models/lingbot-depth-mlx-fp32/`. For BF16, use `models/lingbot-depth-mlx-mixed-bf16-fp32/` and also supply its `precision.json`. The loader checks these files against the [pinned hashes](lingbot_depth_mlx/weights.py).
 
 ```bash
 uv sync --extra mlx --extra test
 
 # Run all three public fixtures and compare with GT and saved outputs.
 uv run --extra mlx python run_mlx.py \
-  --model models/mlx-fp32 --output outputs/mlx-public
+  --model models/lingbot-depth-mlx-fp32 --output outputs/mlx-public
 
 # Or infer an aligned RGB + depth image pair.
 uv run --extra mlx python run_mlx.py \
-  --model models/mlx-fp32 --rgb path/to/rgb.png \
+  --model models/lingbot-depth-mlx-fp32 --rgb path/to/rgb.png \
   --depth path/to/depth.png --depth-unit mm --output outputs/mlx-custom
 ```
 
@@ -140,7 +150,7 @@ uv run --extra viewer python view_depth.py
 
 # Run MLX on the public fixtures, then view the fresh predictions.
 uv run --extra mlx --extra viewer python run_mlx.py \
-  --model models/mlx-fp32 --output outputs/mlx-view --view
+  --model models/lingbot-depth-mlx-fp32 --output outputs/mlx-view --view
 
 # Reopen existing predictions without running inference again.
 uv run --extra viewer python view_depth.py --results outputs/mlx-view
@@ -162,11 +172,11 @@ uv run python validate.py verify
 uv run python validate.py run --saved --output outputs/saved.json
 ```
 
-**Model download: TBD.** Place the complete safe107 Core ML package at `models/model.mlpackage`, then run fresh inference:
+**Model download: TBD.** Place the complete Core ML package at `models/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/model.mlpackage`, then run fresh inference:
 
 ```bash
-uv run python validate.py verify --model models/model.mlpackage
-uv run python validate.py run --model models/model.mlpackage \
+uv run python validate.py verify --model models/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/model.mlpackage
+uv run python validate.py run --model models/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/model.mlpackage \
   --output outputs/fresh.json
 ```
 
@@ -189,11 +199,11 @@ xcrun xctrace list devices
 export LINGBOT_IPAD_UDID="YOUR_HARDWARE_UDID"
 export LINGBOT_SIGNING_TEAM="YOUR_TEAM_ID"
 
-uv run python validate.py install --model models/model.mlpackage \
+uv run python validate.py install --model models/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/model.mlpackage \
   --device "$LINGBOT_IPAD_UDID" --team "$LINGBOT_SIGNING_TEAM"
 ```
 
-**Build → install → copy verified model → launch.** Grant camera access and wait for readiness. Add `--dry-run` to preview commands, or `--bundle-id com.yourname.LingBotDepthBench` for your signing team.
+**Build → install → copy verified model → launch.** The installer and app use `Documents/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/`. When updating an older beta, rerun this installer to supply the renamed payload; existing device data is not deleted. Grant camera access and wait for readiness. Add `--dry-run` to preview commands, or `--bundle-id com.yourname.LingBotDepthBench` for your signing team.
 
 <details>
 <summary>Tests</summary>
@@ -212,7 +222,7 @@ Tests cover metrics, MLX preprocessing/checkpoints, hashes, installation command
 
 - **Quality:** Real LiDAR + independent GT and held-out scenes.
 - **Performance:** Controlled device comparisons before changing the selected model.
-- **Release:** Model download **TBD**, current-app device retest, broader device coverage.
+- **Release:** Model download **TBD** and download-link update; current-app capture-to-3D confirmation and broader device coverage remain.
 
 ---
 

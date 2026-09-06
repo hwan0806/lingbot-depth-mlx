@@ -75,7 +75,7 @@ struct BetaCaptureView: View {
     @Published var loading = false
     @Published var hasDepth = false
     @Published var busy = false
-    @Published var status = "카메라와 safe107 모델 준비 중…"
+    @Published var status = "카메라와 Core ML Eco1200 · FP16/FP32 모델 준비 중…"
     @Published var scene: SCNScene?
     @Published var resetView = 0
     @Published var previewHz = 0.0
@@ -108,7 +108,7 @@ struct BetaCaptureView: View {
             resume()
             try await worker.load()
             ready = true
-            status = "준비 완료 · safe107 / CPU+GPU · 버튼을 누르면 1회 추론"
+            status = "준비 완료 · Core ML Eco1200 · FP16/FP32 · CPU+GPU · 버튼을 누르면 1회 추론"
         } catch { status = error.localizedDescription }
     }
 
@@ -225,7 +225,7 @@ private actor BetaInference {
     func load() async throws {
         guard backend == nil else { return }
         guard let device = MTLCreateSystemDefaultDevice() else { throw BetaError.message("Metal을 사용할 수 없습니다.") }
-        let package = try ValidatedModelPackage.validate(at: URL.documentsDirectory.appending(path: "safe107-model"))
+        let package = try ValidatedModelPackage.validate(at: URL.documentsDirectory.appending(path: ValidatedModelPackage.modelID))
         let model = CoreMLBackend(modelURL: package, profile: .eco, placement: .cpuAndGPU)
         try await model.load()
         preprocessor = try MetalPreprocessor(device: device)

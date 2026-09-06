@@ -1,4 +1,5 @@
 {
+  "published_model_id": "lingbot-depth-coreml-eco1200-mixed-fp16-fp32",
   "mode": "fresh-mac-coreml-cpu-and-gpu",
   "model_manifest_sha256": "ee3ceba8609ff768e55217979b6226c9034a627133c769f6ede7d058361fdccf",
   "samples": [

@@ -11,6 +11,9 @@ dist/
 *.bin
 *.f32
 models/safe107-model/
+/models/lingbot-depth-coreml-eco1200-mixed-fp16-fp32/
+/models/lingbot-depth-mlx-fp32/
+/models/lingbot-depth-mlx-mixed-bf16-fp32/
 *.zip
 *.pt
 *.safetensors

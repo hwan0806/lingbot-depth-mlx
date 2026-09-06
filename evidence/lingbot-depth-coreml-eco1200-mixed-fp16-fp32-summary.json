@@ -1,4 +1,5 @@
 {
+  "published_model_id": "lingbot-depth-coreml-eco1200-mixed-fp16-fp32",
   "aggregation": "sample means; mask IoU minimum",
   "coreml_gt_absrel_mean": 0.011865373313495412,
   "coreml_gt_absrel_median": 0.01098350834835597,
